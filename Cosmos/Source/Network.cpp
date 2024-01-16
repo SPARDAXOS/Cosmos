@@ -3,6 +3,24 @@
 
 bool IP_Address::GetLocalAddresses(std::vector<IP_Address>& addresses) {
 
+	DWORD Size = 0;
+	GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, NULL, &Size);
+
+	IP_ADAPTER_ADDRESSES* AdapterAddresses = (IP_ADAPTER_ADDRESSES*)calloc(1, Size);
+	GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, AdapterAddresses, &Size);
+
+	for (IP_ADAPTER_ADDRESSES* Iter = AdapterAddresses; Iter != NULL; Iter = Iter->Next) {
+		if (Iter->OperStatus == IfOperStatusUp && (Iter->IfType == IF_TYPE_ETHERNET_CSMACD || Iter->IfType == IF_TYPE_IEEE80211)) {
+			for (IP_ADAPTER_UNICAST_ADDRESS* UA = Iter->FirstUnicastAddress; UA != NULL; UA = UA->Next) {
+				char Addrstr[1024] = {};
+				getnameinfo()
+
+
+			}
+		}
+	}
+
+
 }
 
 IP_Address::IP_Address(const IP_Address& rhs) 
