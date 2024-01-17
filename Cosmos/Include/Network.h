@@ -52,7 +52,7 @@ struct Socket {
 
 	bool Valid();
 	bool Open(const IP_Address& address);
-	//void Close();
+	void Close();
 
 	//bool Send(const IP_Address& address, const ByteStream& stream);
 	//bool Receive(IP_Address& address, ByteStream& stream);

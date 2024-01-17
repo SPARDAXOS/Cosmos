@@ -13,14 +13,23 @@ bool IP_Address::GetLocalAddresses(std::vector<IP_Address>& addresses) {
 		if (Iter->OperStatus == IfOperStatusUp && (Iter->IfType == IF_TYPE_ETHERNET_CSMACD || Iter->IfType == IF_TYPE_IEEE80211)) {
 			for (IP_ADAPTER_UNICAST_ADDRESS* UA = Iter->FirstUnicastAddress; UA != NULL; UA = UA->Next) {
 				char Addrstr[1024] = {};
-				getnameinfo()
+				getnameinfo(UA->Address.lpSockaddr, UA->Address.iSockaddrLength, Addrstr, sizeof(Addrstr), NULL, 0, AI_NUMERICHOST);
 
-
+				if (UA->Address.lpSockaddr->sa_family == AF_INET) {
+					sockaddr_in AI = *(sockaddr_in*)UA->Address.lpSockaddr;
+					IP_Address Address;
+					Address.m_Host = ntohl(AI.sin_addr.s_addr);
+					Address.m_Port = ntohs(AI.sin_port);
+					addresses.push_back(Address);
+				}
 			}
 		}
 	}
 
 
+	free(AdapterAddresses);
+
+	return !addresses.empty();
 }
 
 IP_Address::IP_Address(const IP_Address& rhs) 
@@ -110,13 +119,36 @@ bool Socket::Valid() {
 
 bool Socket::Open(const IP_Address& address) {
 
+	SOCKET fd = ::socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd == INVALID_SOCKET)
+		return false;
 
+	sockaddr_in addr{};
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(address.m_Port);
+	addr.sin_addr.s_addr = htonl(address.m_Host);
+	if (::bind(fd, (const sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
+		closesocket(fd);
+		return false;
+	}
 
+	u_long non_blocking = 1;
+	if (ioctlsocket(fd, FIONBIO, &non_blocking) == SOCKET_ERROR) {
+		closesocket(fd);
+		return false;
+	}
 
-	return true;
+	m_Handle = fd;
+
+	return Valid();
 }
 
+void Socket::Close() {
+	if (Valid())
+		closesocket(m_Handle);
 
+	m_Handle = INVALID_SOCKET;
+}
 
 
 
