@@ -107,17 +107,17 @@ uint32 IP_Address::DNS_Query(const char* name) {
 
 
 
-Socket::Socket()
+UDP_Socket::UDP_Socket()
 	: m_Handle(INVALID_SOCKET)
 {
 }
 
-bool Socket::Valid() {
+bool UDP_Socket::Valid() {
 
 	return m_Handle != INVALID_SOCKET;
 }
 
-bool Socket::Open(const IP_Address& address) {
+bool UDP_Socket::Open(const IP_Address& address) {
 
 	SOCKET fd = ::socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd == INVALID_SOCKET)
@@ -143,7 +143,7 @@ bool Socket::Open(const IP_Address& address) {
 	return Valid();
 }
 
-void Socket::Close() {
+void UDP_Socket::Close() {
 	if (Valid())
 		closesocket(m_Handle);
 
@@ -152,8 +152,56 @@ void Socket::Close() {
 
 
 
+bool UDP_Socket::Send(const IP_Address& address, const ByteStream& stream) {
 
+	if (!Valid())
+		return false;
 
+	const int32 Length = stream.m_Size;
+	const char* Data = (const char*)stream.m_Data;
+
+	sockaddr_in Addr{};
+	Addr.sin_family = AF_INET;
+	Addr.sin_port = htons(address.m_Port);
+	Addr.sin_addr.s_addr = htonl(address.m_Host);
+	if (::sendto(m_Handle, Data, Length, 0, (const sockaddr*)&Addr, sizeof(Addr)) == SOCKET_ERROR)
+		return false;
+
+	return true;
+}
+
+bool UDP_Socket::Receive(IP_Address& address, ByteStream& stream) {
+
+	if (!Valid())
+		return false;
+
+	sockaddr_in Addr{};
+	int32 Addrlen = sizeof(Addr);
+	int32 Receive = ::recvfrom(m_Handle, (char*)stream.m_Data, sizeof(stream.m_Data), 0, (sockaddr*)&Addr, &Addrlen);
+	if (Receive == SOCKET_ERROR)
+		return false;
+
+	address.m_Host = htonl(Addr.sin_addr.s_addr);
+	address.m_Port = htons(Addr.sin_port);
+	stream.m_Size = Receive;
+
+	return true;
+}
+bool UDP_Socket::GetAddress(IP_Address& address) {
+
+	if (!Valid())
+		return false;
+
+	sockaddr_in Addr = {};
+	int Addrlen = sizeof(Addr);
+	if (getsockname(m_Handle, (sockaddr*)&Addr, &Addrlen) == SOCKET_ERROR)
+		return false;
+
+	address.m_Host = htonl(Addr.sin_addr.s_addr);
+	address.m_Port = htons(Addr.sin_port);
+
+	return true;
+}
 
 
 
@@ -166,6 +214,7 @@ Network::Network() {
 		printf("Failed to initialize winsock! Error: %d", Results);
 		return;
 	}
+	printf("Winsock initialized successfully!\n");
 }
 Network::~Network() {
 	WSACleanup();

@@ -12,6 +12,9 @@
 
 struct ByteStream {
 
+
+	int32 m_Size = 0;
+	uint8 m_Data[1024] = {}; //1024 x 8 = 8192 bits - Must be divisible by 4.
 };
 struct ByteStreamWriter : public ByteStream {
 
@@ -46,18 +49,18 @@ struct IP_Address {
 	uint32 m_Host{ K_Any_Host };
 	uint16 m_Port{ K_Any_Port };
 };
-struct Socket {
+struct UDP_Socket {
 
-	Socket();
+	UDP_Socket();
 
 	bool Valid();
 	bool Open(const IP_Address& address);
 	void Close();
 
-	//bool Send(const IP_Address& address, const ByteStream& stream);
-	//bool Receive(IP_Address& address, ByteStream& stream);
+	bool Send(const IP_Address& address, const ByteStream& stream);
+	bool Receive(IP_Address& address, ByteStream& stream);
 
-	//bool GetAddress(IP_Address& address);
+	bool GetAddress(IP_Address& address);
 
 	uint64 m_Handle;
 };
