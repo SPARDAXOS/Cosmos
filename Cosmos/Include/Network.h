@@ -10,6 +10,8 @@
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
+static uint16 SERVER_PORT = 21435;
+
 struct ByteStream {
 
 
