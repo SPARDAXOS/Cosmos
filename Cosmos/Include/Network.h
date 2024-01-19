@@ -51,6 +51,12 @@ struct IP_Address {
 	uint32 m_Host{ K_Any_Host };
 	uint16 m_Port{ K_Any_Port };
 };
+
+struct Socket {
+
+
+	uint64 m_Handle;
+};
 struct UDP_Socket {
 
 	UDP_Socket();
@@ -65,6 +71,11 @@ struct UDP_Socket {
 	bool GetAddress(IP_Address& address);
 
 	uint64 m_Handle;
+};
+struct TCP_Socket : Socket {
+
+
+
 };
 
 
