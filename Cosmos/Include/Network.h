@@ -55,6 +55,17 @@ struct IP_Address {
 struct Socket {
 
 
+	bool Open(const IP_Address& address);
+	void Close(); //Generic
+
+	//Not sure if they are any different betwenn socket types
+	virtual bool Send(const IP_Address& address, const ByteStream& stream) = 0;
+	virtual bool Receive(IP_Address& address, ByteStream& stream) = 0;
+
+	inline bool Valid() const noexcept { return m_Handle != INVALID_SOCKET; } //Generic
+	bool GetAddress(IP_Address& address); //Generic
+
+
 	uint64 m_Handle;
 };
 struct UDP_Socket {

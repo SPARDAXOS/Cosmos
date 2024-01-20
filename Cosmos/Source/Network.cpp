@@ -104,6 +104,27 @@ uint32 IP_Address::DNS_Query(const char* name) {
 }
 
 
+void Socket::Close() {
+	if (Valid())
+		closesocket(m_Handle);
+
+	m_Handle = INVALID_SOCKET;
+}
+bool Socket::GetAddress(IP_Address& address) {
+	if (!Valid())
+		return false;
+
+	sockaddr_in Addr = {};
+	int Addrlen = sizeof(Addr);
+	if (getsockname(m_Handle, (sockaddr*)&Addr, &Addrlen) == SOCKET_ERROR)
+		return false;
+
+	address.m_Host = htonl(Addr.sin_addr.s_addr);
+	address.m_Port = htons(Addr.sin_port);
+
+	return true;
+}
+
 
 
 
